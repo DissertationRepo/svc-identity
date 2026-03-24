@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace IdentityService.Api.Models
+﻿namespace IdentityService.Api.Models
 {
     public class Login
     {

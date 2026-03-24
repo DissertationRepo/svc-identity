@@ -1,5 +1,53 @@
+using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using IdentityService.Api.ModelValidators;
+using IdentityService.Application.Common;
+using IdentityService.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using AutoMapper;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Add infrastructure services (will Configure<JwtSettings> and register ITokenService)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Register FluentValidation validators from this assembly and enable automatic validation
+builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
+builder.Services.AddFluentValidationAutoValidation();
+
+//Add auto-mapper
+builder.Services.AddAutoMapper(typeof(IdentityService.Api.Mapping.LoginMappingProfile).Assembly);
+
+
+// Bind jwt settings to use when configuring JwtBearer
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtSettings = jwtSection.Get<JwtSettings>() ?? new JwtSettings();
+var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
+
+// Authentication configuration
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwtSettings.Audience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30)
+    };
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -16,6 +64,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
