@@ -4,6 +4,6 @@ namespace IdentityService.Application.Services
 {
     public interface ITokenService
     {
-        string GenerateToken(string subject, IEnumerable<Claim>? additionalClaims = null);
+        string GenerateToken(string subject);
     }
 }

@@ -18,13 +18,27 @@ namespace IdentityService.Api.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Token([FromBody] Login request)
+        public async Task<IActionResult> Token([FromBody] Login request)
         {
             var loginCommand = _mapper.Map<Application.Models.Login>(request);
 
-            var accessToken = _loginService.Login(loginCommand);
+            var loginResponse = await _loginService.Login(loginCommand);
 
-            return Ok(accessToken);
+            return Ok(loginResponse);
+        }
+
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register([FromBody] Register request)
+        {
+            var registerCommand = _mapper.Map<Application.Models.Register>(request);
+
+            var registerResponse = await _loginService.Register(registerCommand);
+
+            if (registerResponse == true)
+            {
+                return Ok("Registration was succesful!");
+            }
+            return BadRequest("A user with this email already exists");
         }
     }
 }

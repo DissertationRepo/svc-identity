@@ -4,6 +4,7 @@ namespace IdentityService.Application.AbstractServices
 {
     public interface ILoginService
     {
-        string Login(Login login);
+        Task<LoginResponse> Login(Login login);
+        Task<bool> Register(Register register);
     }
 }

@@ -5,21 +5,33 @@ using IdentityService.Api.ModelValidators;
 using IdentityService.Application.Common;
 using IdentityService.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add infrastructure services (will Configure<JwtSettings> and register ITokenService)
+// Add infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Register FluentValidation validators from this assembly and enable automatic validation
 builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 
 //Add auto-mapper
-builder.Services.AddAutoMapper(typeof(IdentityService.Api.Mapping.LoginMappingProfile).Assembly);
+builder.Services.AddAutoMapper(
+    typeof(IdentityService.Api.Mapping.LoginMappingProfile).Assembly,
+    typeof(IdentityService.Infrastructure.Mappings.UserMapping).Assembly,
+    typeof(IdentityService.Infrastructure.Mappings.DomainUserMapping).Assembly,
+    typeof(IdentityService.Api.Mapping.RegisterMapping).Assembly
+    );
 
+//Add connection string for database context
+var conString = builder.Configuration.GetConnectionString("IdentityDB") ??
+     throw new InvalidOperationException("Connection string 'IdentityDB'" +
+    " not found.");
+builder.Services.AddDbContext<IdentityDbContext>(options =>
+    options.UseNpgsql(conString));
 
 // Bind jwt settings to use when configuring JwtBearer
 var jwtSection = builder.Configuration.GetSection("Jwt");

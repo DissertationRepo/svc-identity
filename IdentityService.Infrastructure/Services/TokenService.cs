@@ -21,7 +21,7 @@ namespace IdentityService.Infrastructure.Services
             _signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         }
 
-        public string GenerateToken(string subject, IEnumerable<Claim>? additionalClaims = null)
+        public string GenerateToken(string subject)
         {
             var now = DateTime.UtcNow;
             var claims = new List<Claim>
@@ -30,9 +30,6 @@ namespace IdentityService.Infrastructure.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
-
-            if (additionalClaims != null)
-                claims.AddRange(additionalClaims);
 
             var jwt = new JwtSecurityToken(
                 issuer: _settings.Issuer,
