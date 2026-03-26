@@ -18,6 +18,8 @@ namespace IdentityService.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<ITokenHasher, TokenHasher>();
 
             return services;
         }

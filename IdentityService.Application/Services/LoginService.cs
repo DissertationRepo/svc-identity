@@ -1,5 +1,6 @@
 ﻿using IdentityService.Application.AbstractServices;
 using IdentityService.Application.Models;
+using IdentityService.Domain.Entities;
 using IdentityService.Domain.ValueObjects;
 
 namespace IdentityService.Application.Services
@@ -10,17 +11,23 @@ namespace IdentityService.Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
+        private readonly ITokenHasher _tokenHasher;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
 
         public LoginService(
             ITokenService tokenService,
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
-            IRefreshTokenGenerator refreshTokenGenerator)
+            IRefreshTokenGenerator refreshTokenGenerator,
+            ITokenHasher tokenHasher,
+            IRefreshTokenRepository refreshTokenRepository)
         {
             _tokenService = tokenService;
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _refreshTokenGenerator = refreshTokenGenerator;
+            _tokenHasher = tokenHasher;
+            _refreshTokenRepository = refreshTokenRepository;
         }
         public async Task<LoginResponse> Login(Login login)
         {
@@ -30,8 +37,13 @@ namespace IdentityService.Application.Services
             {
                 throw new UnauthorizedAccessException("Invalid email or password.");
             }
+            
             var refreshToken = _refreshTokenGenerator.GenerateRefreshToken();
             var accessToken = _tokenService.GenerateToken(email.ToString());
+
+            var refreshTokenDomain = CreateRefreshToken(refreshToken, user.Id);
+            await _refreshTokenRepository.AddRefreshTokenAsync(refreshTokenDomain);
+
             var loginResponse = new LoginResponse
             {
                 AccessToken = accessToken,
@@ -51,6 +63,18 @@ namespace IdentityService.Application.Services
                 register.Role
             );
             return await _userRepository.AddUserAsync(user);
+        }
+
+        private RefreshToken CreateRefreshToken(string refreshToken, Guid userId)
+        {
+            var hashedToken = _tokenHasher.Hash(refreshToken);
+            var refreshTokenDomain = new RefreshToken(
+                    hashedToken,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddDays(1),
+                    userId
+                ); 
+            return refreshTokenDomain;
         }
     }
 }

@@ -4,25 +4,24 @@ public sealed class RefreshToken
 {
     private RefreshToken() { } // for ORM
 
-    public RefreshToken(Guid id, string tokenHash, DateTime createdAt, DateTime expiresAt)
+    public RefreshToken(string tokenHash, DateTime createdAt, DateTime expiresAt, Guid userId)
     {
-        Id = id;
         TokenHash = tokenHash ?? throw new ArgumentNullException(nameof(tokenHash));
         CreatedAt = createdAt;
         ExpiresAt = expiresAt;
         RevokedAt = null;
+        UserId = userId;
         ReplacedByTokenId = null;
-        RevocationReason = null;
     }
 
-    public Guid Id { get; init; }
-    public string TokenHash { get; private set; } = string.Empty; // hashed token (not plain)
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string TokenHash { get; private set; } = string.Empty; 
     public DateTime CreatedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
+    public Guid UserId { get; private set; }
 
     public DateTime? RevokedAt { get; private set; }
     public Guid? ReplacedByTokenId { get; private set; }
-    public string? RevocationReason { get; private set; }
 
     public bool IsExpired(DateTime now) => ExpiresAt <= now;
     public bool IsRevoked => RevokedAt.HasValue;
@@ -33,7 +32,6 @@ public sealed class RefreshToken
     {
         if (IsRevoked) return;
         RevokedAt = when;
-        RevocationReason = reason;
         ReplacedByTokenId = replacedBy;
     }
 
@@ -42,6 +40,5 @@ public sealed class RefreshToken
     {
         ReplacedByTokenId = newTokenId;
         RevokedAt = when;
-        RevocationReason = "rotated";
     }
 }

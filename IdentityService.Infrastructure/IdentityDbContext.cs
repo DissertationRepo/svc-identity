@@ -24,8 +24,7 @@ namespace IdentityService.Infrastructure
                 entity.HasKey(x => x.Id);
 
                 entity.Property(x => x.Id)
-                    .HasColumnName("id")
-                    .HasDefaultValueSql("gen_random_uuid()");
+                    .HasColumnName("id");
 
                 entity.Property(x => x.FirstName)
                     .HasColumnName("first_name");

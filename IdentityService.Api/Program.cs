@@ -23,7 +23,8 @@ builder.Services.AddAutoMapper(
     typeof(IdentityService.Api.Mapping.LoginMappingProfile).Assembly,
     typeof(IdentityService.Infrastructure.Mappings.UserMapping).Assembly,
     typeof(IdentityService.Infrastructure.Mappings.DomainUserMapping).Assembly,
-    typeof(IdentityService.Api.Mapping.RegisterMapping).Assembly
+    typeof(IdentityService.Api.Mapping.RegisterMapping).Assembly,
+    typeof(IdentityService.Infrastructure.Mappings.RefreshTokenMapping).Assembly
     );
 
 //Add connection string for database context
