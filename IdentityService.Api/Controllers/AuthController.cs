@@ -9,9 +9,9 @@ namespace IdentityService.Api.Controllers
     [Route("[controller]")]
     public sealed class AuthController : ControllerBase
     {
-        private readonly ILoginService _loginService;
+        private readonly IAuthService _loginService;
         private readonly IMapper _mapper;
-        public AuthController(ILoginService loginService, IMapper mapper)
+        public AuthController(IAuthService loginService, IMapper mapper)
         {
             _loginService = loginService;
             _mapper = mapper;
@@ -25,6 +25,16 @@ namespace IdentityService.Api.Controllers
             var loginResponse = await _loginService.Login(loginCommand);
 
             return Ok(loginResponse);
+        }
+
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout([FromBody] Logout request)
+        {
+            var logoutCommand = _mapper.Map<Application.Models.Logout>(request);
+
+            await _loginService.Logout(logoutCommand);
+            
+            return Ok("Logout was succesful!");
         }
 
         [HttpPost("Register")]

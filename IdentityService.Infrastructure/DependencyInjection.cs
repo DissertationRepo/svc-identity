@@ -13,8 +13,10 @@ namespace IdentityService.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+            services.Configure<RefreshTokenHashingSettings>(configuration.GetSection("RefreshTokenHashing"));
+
             services.AddSingleton<ITokenService, TokenService>();
-            services.AddScoped<ILoginService, LoginService>();
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();

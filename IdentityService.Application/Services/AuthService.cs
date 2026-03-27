@@ -5,7 +5,7 @@ using IdentityService.Domain.ValueObjects;
 
 namespace IdentityService.Application.Services
 {
-    public class LoginService : ILoginService
+    public class AuthService : IAuthService
     {
         private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepository;
@@ -14,7 +14,7 @@ namespace IdentityService.Application.Services
         private readonly ITokenHasher _tokenHasher;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-        public LoginService(
+        public AuthService(
             ITokenService tokenService,
             IUserRepository userRepository,
             IPasswordHasher passwordHasher,
@@ -50,6 +50,17 @@ namespace IdentityService.Application.Services
                 RefreshToken = refreshToken
             };
             return loginResponse;
+        }
+
+        public async Task Logout(Logout logout)
+        {
+            var hashedToken = _tokenHasher.Hash(logout.RefreshToken);
+            var domainRefreshToken = await _refreshTokenRepository.GetByTokenHashAsync(hashedToken);
+            if (domainRefreshToken != null && domainRefreshToken.IsActive(DateTime.UtcNow))
+            {
+                domainRefreshToken.Revoke(DateTime.UtcNow, "User logged out");
+                await _refreshTokenRepository.UpdateRefreshTokenAsync(domainRefreshToken);
+            }
         }
 
         public async Task<bool> Register(Register register)

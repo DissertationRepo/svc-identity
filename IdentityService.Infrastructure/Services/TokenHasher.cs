@@ -1,26 +1,31 @@
 ﻿using IdentityService.Application.AbstractServices;
+using IdentityService.Application.Common;
+using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace IdentityService.Infrastructure.Services
 {
     public class TokenHasher : ITokenHasher
     {
-        public string Hash(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Token is required.", nameof(password));
 
-            return BCrypt.Net.BCrypt.HashPassword(password);
+        private readonly string _secret;
+
+        public TokenHasher(IOptions<RefreshTokenHashingSettings> options)
+        {
+            _secret = options.Value.Secret;
+
+            if (string.IsNullOrWhiteSpace(_secret))
+                throw new InvalidOperationException("Refresh token hashing secret is missing.");
         }
-
-        public bool Verify(string hashedToken, string providedToken)
+        public string Hash(string token)
         {
-            if (string.IsNullOrWhiteSpace(hashedToken))
-                throw new ArgumentException("Hashed password is required.", nameof(hashedToken));
+            if (string.IsNullOrWhiteSpace(token))
+                throw new ArgumentException("Token is required.", nameof(token));
 
-            if (string.IsNullOrWhiteSpace(providedToken))
-                throw new ArgumentException("Provided password is required.", nameof(providedToken));
-
-            return BCrypt.Net.BCrypt.Verify(providedToken, hashedToken);
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secret));
+            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(hashBytes);
         }
     }
 }

@@ -9,6 +9,5 @@ namespace IdentityService.Application.AbstractServices
     public interface ITokenHasher
     {
         string Hash(string token);
-        bool Verify(string hashedToken, string providedToken);
     }
 }
