@@ -17,8 +17,7 @@ namespace IdentityService.Api.Mapping
                 src.LastName,
                 src.Email,
                 src.Password,
-                src.Role,
-                src.ClientId
+                src.Role
             );
             return registerApplication;
         }

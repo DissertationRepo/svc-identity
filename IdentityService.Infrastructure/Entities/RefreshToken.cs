@@ -21,7 +21,7 @@ namespace IdentityService.Infrastructure.Entities
         public DateTime CreatedAt { get; init; }
 
         public DateTime? RevokedAt { get; init; }
-        public Guid? ReplacedByTokenId { get; init; }
+        public Guid? ReplacedByTokenId { get; set; }
         public User User { get; init; }
     }
 }

@@ -13,5 +13,6 @@ namespace IdentityService.Application.AbstractServices
         Task<RefreshToken> GetRefreshTokenAsync(string token);
         Task UpdateRefreshTokenAsync(RefreshToken refreshToken);
         Task<RefreshToken> GetByTokenHashAsync(string token);
+        Task UpdateOldTokenAsync(Guid userId,  Guid newRefreshTokenId);
     }
 }

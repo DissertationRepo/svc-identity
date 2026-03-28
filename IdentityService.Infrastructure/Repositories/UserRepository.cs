@@ -2,13 +2,7 @@
 using DomainUser = IdentityService.Domain.Entities.User;
 using IdentityService.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.Extensions.Logging;
 
 namespace IdentityService.Infrastructure.Repositories
 {
@@ -48,6 +42,13 @@ namespace IdentityService.Infrastructure.Repositories
                 Console.WriteLine(ex.ToString());
                 return false;
             }
+        }
+
+        public async Task<DomainUser?> GetUserByUserIdAsync(Guid userId)
+        {
+            var infraUser = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId) ?? null;
+
+            return _mapper.Map<DomainUser>(infraUser);
         }
     }
 }

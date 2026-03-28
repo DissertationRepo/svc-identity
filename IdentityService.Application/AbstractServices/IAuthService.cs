@@ -7,5 +7,6 @@ namespace IdentityService.Application.AbstractServices
         Task<LoginResponse> Login(Login login);
         Task Logout(Logout logout);
         Task<bool> Register(Register register);
+        Task<RefreshResponse> Refresh(Refresh refreshCommand);
     }
 }

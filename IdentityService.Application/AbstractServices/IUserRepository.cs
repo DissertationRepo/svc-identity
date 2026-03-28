@@ -6,5 +6,6 @@ namespace IdentityService.Application.AbstractServices
     {
         Task<bool> AddUserAsync(User user);
         Task<User> GetUserByEmailAsync(string email);
+        Task<User> GetUserByUserIdAsync(Guid userId);
     }
 }

@@ -4,16 +4,19 @@
     {
         private string _email;
         private string _password;
-        private string _clientId;
+        private string? _refreshToken;
 
-        public Login(string email, string password, string clientId)
+        public Login(string email, string password, string? refreshToken)
         {
             _email = email ?? throw new ArgumentNullException(nameof(Email));
             _password = password ?? throw new ArgumentNullException(nameof(Password));
-            _clientId = clientId ?? throw new ArgumentNullException(nameof(ClientId));
+            if (refreshToken != null)
+            {
+                _refreshToken = refreshToken;
+            }
         }
         public string Email { get => _email; }
         public string Password { get => _password; }
-        public string ClientId { get => _clientId; }
+        public string? RefreshToken { get => _refreshToken; }
     }
 }

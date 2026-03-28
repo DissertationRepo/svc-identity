@@ -15,8 +15,8 @@ namespace IdentityService.Api.Mapping
             var loginApplication = new Application.Models.Login
             (
                 src.Email,
-                src.Password,
-                src.ClientId
+                src.Password, 
+                src.RefreshToken
             );
 
             return loginApplication;

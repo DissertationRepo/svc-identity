@@ -42,6 +42,7 @@ namespace IdentityService.Application.Services
             var accessToken = _tokenService.GenerateToken(email.ToString());
 
             var refreshTokenDomain = CreateRefreshToken(refreshToken, user.Id);
+            await _refreshTokenRepository.UpdateOldTokenAsync(user.Id, refreshTokenDomain.Id);
             await _refreshTokenRepository.AddRefreshTokenAsync(refreshTokenDomain);
 
             var loginResponse = new LoginResponse
@@ -60,6 +61,25 @@ namespace IdentityService.Application.Services
             {
                 domainRefreshToken.Revoke(DateTime.UtcNow, "User logged out");
                 await _refreshTokenRepository.UpdateRefreshTokenAsync(domainRefreshToken);
+            }
+        }
+
+        public async Task<RefreshResponse> Refresh(Refresh refreshCommand)
+        {
+            var hashedToken = _tokenHasher.Hash(refreshCommand.RefreshToken);
+            var domainRefreshToken = await _refreshTokenRepository.GetByTokenHashAsync(hashedToken);
+            var domainUser = await _userRepository.GetUserByUserIdAsync(refreshCommand.UserId);
+            if (domainRefreshToken != null && domainRefreshToken.IsActive(DateTime.UtcNow) && domainUser != null)
+            {
+                var refreshResponse = new RefreshResponse
+                {
+                    AccessToken = _tokenService.GenerateToken(domainUser.Email.ToString())
+                };
+                return refreshResponse;
+            }
+            else
+            {
+                throw new Exception("Refresh Token is expired, logout and login again.");
             }
         }
 

@@ -4,6 +4,6 @@
     {
         public string? Email { get; init; }
         public string? Password { get; init; }
-        public string? ClientId { get; init; }
+        public string? RefreshToken { get; init; }
     }
 }

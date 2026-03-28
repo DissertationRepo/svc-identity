@@ -17,6 +17,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<LogoutValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RefreshValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 
 //Add auto-mapper
@@ -26,7 +27,8 @@ builder.Services.AddAutoMapper(
     typeof(IdentityService.Infrastructure.Mappings.DomainUserMapping).Assembly,
     typeof(IdentityService.Api.Mapping.RegisterMapping).Assembly,
     typeof(IdentityService.Infrastructure.Mappings.RefreshTokenMapping).Assembly,
-    typeof(IdentityService.Api.Mapping.LogoutMapping).Assembly
+    typeof(IdentityService.Api.Mapping.LogoutMapping).Assembly,
+    typeof(IdentityService.Api.Mapping.RefreshMapping).Assembly
     );
 
 //Add connection string for database context

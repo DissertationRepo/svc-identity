@@ -64,5 +64,14 @@ namespace IdentityService.Infrastructure.Repositories
             return _mapper.Map<Domain.Entities.RefreshToken>(infraToken);
         }
 
+        public async Task UpdateOldTokenAsync(Guid userId, Guid newRefreshTokenId)
+        {
+            var oldToken = await _db.RefreshTokens.FirstOrDefaultAsync(x => x.UserId == userId && x.ReplacedByTokenId == null);
+            if ( oldToken != null )
+            {
+                oldToken.ReplacedByTokenId = newRefreshTokenId;
+            }
+            await _db.SaveChangesAsync();
+        }
     }
 }
