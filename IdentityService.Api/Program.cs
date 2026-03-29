@@ -31,6 +31,16 @@ builder.Services.AddAutoMapper(
     typeof(IdentityService.Api.Mapping.RefreshMapping).Assembly
     );
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ViteDev", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 //Add connection string for database context
 var conString = builder.Configuration.GetConnectionString("IdentityDB") ??
      throw new InvalidOperationException("Connection string 'IdentityDB'" +
@@ -80,6 +90,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("ViteDev");
 
 app.UseAuthentication();
 app.UseAuthorization();
