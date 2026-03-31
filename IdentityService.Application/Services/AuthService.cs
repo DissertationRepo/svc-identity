@@ -1,4 +1,5 @@
 ﻿using IdentityService.Application.AbstractServices;
+using IdentityService.Application.Common;
 using IdentityService.Application.Models;
 using IdentityService.Domain.Entities;
 using IdentityService.Domain.ValueObjects;
@@ -29,13 +30,13 @@ namespace IdentityService.Application.Services
             _tokenHasher = tokenHasher;
             _refreshTokenRepository = refreshTokenRepository;
         }
-        public async Task<LoginResponse> Login(Login login)
+        public async Task<Result<LoginResponse>> Login(Login login)
         {
             var email = Email.Create(login.Email);
             var user = await _userRepository.GetUserByEmailAsync(email.ToString());
             if (user == null || !_passwordHasher.Verify(user.PasswordHash, login.Password))
             {
-                throw new UnauthorizedAccessException("Invalid email or password.");
+                return Result.Failure<LoginResponse>(AuthErrors.InvalidCredentials);
             }
             
             var refreshToken = _refreshTokenGenerator.GenerateRefreshToken();
@@ -50,7 +51,7 @@ namespace IdentityService.Application.Services
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
-            return loginResponse;
+            return Result.Success(loginResponse);
         }
 
         public async Task Logout(Logout logout)
@@ -64,7 +65,7 @@ namespace IdentityService.Application.Services
             }
         }
 
-        public async Task<RefreshResponse> Refresh(Refresh refreshCommand)
+        public async Task<Result<RefreshResponse>> Refresh(Refresh refreshCommand)
         {
             var hashedToken = _tokenHasher.Hash(refreshCommand.RefreshToken);
             var domainRefreshToken = await _refreshTokenRepository.GetByTokenHashAsync(hashedToken);
@@ -75,15 +76,13 @@ namespace IdentityService.Application.Services
                 {
                     AccessToken = _tokenService.GenerateToken(domainUser.Email.ToString())
                 };
-                return refreshResponse;
+                return Result.Success(refreshResponse);
             }
-            else
-            {
-                throw new Exception("Refresh Token is expired, logout and login again.");
-            }
+
+            return Result.Failure<RefreshResponse>(AuthErrors.InvalidRefreshToken);
         }
 
-        public async Task<bool> Register(Register register)
+        public async Task<Result> Register(Register register)
         {
             var passwordHash = _passwordHasher.Hash(register.Password);
             var user = new Domain.Entities.User(
@@ -93,7 +92,12 @@ namespace IdentityService.Application.Services
                 passwordHash,
                 register.Role
             );
-            return await _userRepository.AddUserAsync(user);
+
+            var registerResult = await _userRepository.AddUserAsync(user);
+
+            return registerResult
+                ? Result.Success()
+                : Result.Failure(AuthErrors.DuplicateEmail);
         }
 
         private RefreshToken CreateRefreshToken(string refreshToken, Guid userId)

@@ -1,12 +1,14 @@
 ﻿using IdentityService.Application.Models;
+using IdentityService.Application.Common;
+using IdentityService.Application.Models;
 
 namespace IdentityService.Application.AbstractServices
 {
     public interface IAuthService
     {
-        Task<LoginResponse> Login(Login login);
+        Task<Result<LoginResponse>> Login(Login login);
         Task Logout(Logout logout);
-        Task<bool> Register(Register register);
-        Task<RefreshResponse> Refresh(Refresh refreshCommand);
+        Task<Result> Register(Register register);
+        Task<Result<RefreshResponse>> Refresh(Refresh refreshCommand);
     }
 }

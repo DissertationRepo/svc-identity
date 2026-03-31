@@ -1,5 +1,6 @@
 using IdentityService.Api.Models;
 using IdentityService.Application.AbstractServices;
+using IdentityService.Application.Common;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 
@@ -18,13 +19,18 @@ namespace IdentityService.Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Token([FromBody] Login request)
+        public async Task<IActionResult> Login([FromBody] Login request)
         {
             var loginCommand = _mapper.Map<Application.Models.Login>(request);
 
             var loginResponse = await _loginService.Login(loginCommand);
 
-            return Ok(loginResponse);
+            if (loginResponse.IsFailure)
+            {
+                return ToActionResult(loginResponse);
+            }
+
+            return Ok(loginResponse.Value);
         }
 
         [HttpPost("logout")]
@@ -44,21 +50,61 @@ namespace IdentityService.Api.Controllers
 
             var registerResponse = await _loginService.Register(registerCommand);
 
-            if (registerResponse == true)
+            if (registerResponse.IsSuccess)
             {
                 return Ok("Registration was succesful!");
             }
-            return BadRequest("A user with this email already exists");
+
+            return ToActionResult(registerResponse);
         }
 
         [HttpPost("refresh")]
-        public async Task<Application.Models.RefreshResponse> Refresh([FromBody] Refresh request)
+        public async Task<IActionResult> Refresh([FromBody] Refresh request)
         {
             var refreshCommand = _mapper.Map<Application.Models.Refresh>(request);
 
             var refreshResponse = await _loginService.Refresh(refreshCommand);
 
-            return refreshResponse;
+            if (refreshResponse.IsFailure)
+            {
+                return ToActionResult(refreshResponse);
+            }
+
+            return Ok(refreshResponse.Value);
+        }
+
+        private ObjectResult ToActionResult(Result result)
+        {
+            var statusCode = result.Error.Type switch
+            {
+                ErrorType.Validation => StatusCodes.Status400BadRequest,
+                ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+                ErrorType.NotFound => StatusCodes.Status404NotFound,
+                ErrorType.Conflict => StatusCodes.Status409Conflict,
+                _ => StatusCodes.Status500InternalServerError
+            };
+
+            var title = statusCode switch
+            {
+                StatusCodes.Status400BadRequest => "Bad Request",
+                StatusCodes.Status401Unauthorized => "Unauthorized",
+                StatusCodes.Status404NotFound => "Not Found",
+                StatusCodes.Status409Conflict => "Conflict",
+                _ => "Server Error"
+            };
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = statusCode,
+                Title = title,
+                Detail = result.Error.Description,
+                Type = $"https://httpstatuses.com/{statusCode}"
+            };
+
+            problemDetails.Extensions["code"] = result.Error.Code;
+            problemDetails.Extensions["traceId"] = HttpContext.TraceIdentifier;
+
+            return StatusCode(statusCode, problemDetails);
         }
     }
 }
