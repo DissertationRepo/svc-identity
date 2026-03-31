@@ -27,7 +27,7 @@ namespace IdentityService.Api.Controllers
             return Ok(loginResponse);
         }
 
-        [HttpPost("Logout")]
+        [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] Logout request)
         {
             var logoutCommand = _mapper.Map<Application.Models.Logout>(request);
@@ -37,7 +37,7 @@ namespace IdentityService.Api.Controllers
             return Ok("Logout was succesful!");
         }
 
-        [HttpPost("Register")]
+        [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] Register request)
         {
             var registerCommand = _mapper.Map<Application.Models.Register>(request);
@@ -51,7 +51,7 @@ namespace IdentityService.Api.Controllers
             return BadRequest("A user with this email already exists");
         }
 
-        [HttpPost("Refresh")]
+        [HttpPost("refresh")]
         public async Task<Application.Models.RefreshResponse> Refresh([FromBody] Refresh request)
         {
             var refreshCommand = _mapper.Map<Application.Models.Refresh>(request);
