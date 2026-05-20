@@ -85,6 +85,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Apply EF Core migrations on startup so containers come up with a ready schema.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+    await db.Database.MigrateAsync();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

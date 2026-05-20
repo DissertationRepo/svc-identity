@@ -23,6 +23,16 @@ namespace IdentityService.Infrastructure.Services
 
         public string GenerateToken(string subject)
         {
+            return GenerateTokenInternal(subject, null, null);
+        }
+
+        public string GenerateToken(string subject, Guid userId, string role)
+        {
+            return GenerateTokenInternal(subject, userId, role);
+        }
+
+        private string GenerateTokenInternal(string subject, Guid? userId, string? role)
+        {
             var now = DateTime.UtcNow;
             var claims = new List<Claim>
             {
@@ -30,6 +40,18 @@ namespace IdentityService.Infrastructure.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
+
+            if (userId.HasValue)
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, userId.Value.ToString()));
+                claims.Add(new Claim("uid", userId.Value.ToString()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim("role", role));
+            }
 
             var jwt = new JwtSecurityToken(
                 issuer: _settings.Issuer,

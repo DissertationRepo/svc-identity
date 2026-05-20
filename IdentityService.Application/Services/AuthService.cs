@@ -40,7 +40,7 @@ namespace IdentityService.Application.Services
             }
             
             var refreshToken = _refreshTokenGenerator.GenerateRefreshToken();
-            var accessToken = _tokenService.GenerateToken(email.ToString());
+            var accessToken = _tokenService.GenerateToken(email.ToString(), user.Id, user.Role);
 
             var refreshTokenDomain = CreateRefreshToken(refreshToken, user.Id);
             await _refreshTokenRepository.UpdateOldTokenAsync(user.Id, refreshTokenDomain.Id);
@@ -49,7 +49,9 @@ namespace IdentityService.Application.Services
             var loginResponse = new LoginResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                UserId = user.Id,
+                Role = user.Role
             };
             return Result.Success(loginResponse);
         }
@@ -74,7 +76,7 @@ namespace IdentityService.Application.Services
             {
                 var refreshResponse = new RefreshResponse
                 {
-                    AccessToken = _tokenService.GenerateToken(domainUser.Email.ToString())
+                    AccessToken = _tokenService.GenerateToken(domainUser.Email.ToString(), domainUser.Id, domainUser.Role)
                 };
                 return Result.Success(refreshResponse);
             }
@@ -82,7 +84,7 @@ namespace IdentityService.Application.Services
             return Result.Failure<RefreshResponse>(AuthErrors.InvalidRefreshToken);
         }
 
-        public async Task<Result> Register(Register register)
+        public async Task<Result<RegisterResponse>> Register(Register register)
         {
             var passwordHash = _passwordHasher.Hash(register.Password);
             var user = new Domain.Entities.User(
@@ -95,9 +97,17 @@ namespace IdentityService.Application.Services
 
             var registerResult = await _userRepository.AddUserAsync(user);
 
-            return registerResult
-                ? Result.Success()
-                : Result.Failure(AuthErrors.DuplicateEmail);
+            if (!registerResult)
+            {
+                return Result.Failure<RegisterResponse>(AuthErrors.DuplicateEmail);
+            }
+
+            return Result.Success(new RegisterResponse
+            {
+                UserId = user.Id,
+                Role = user.Role,
+                Email = user.Email.ToString()
+            });
         }
 
         private RefreshToken CreateRefreshToken(string refreshToken, Guid userId)

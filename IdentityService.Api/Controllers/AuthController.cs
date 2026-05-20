@@ -52,7 +52,7 @@ namespace IdentityService.Api.Controllers
 
             if (registerResponse.IsSuccess)
             {
-                return Ok("Registration was succesful!");
+                return Ok(registerResponse.Value);
             }
 
             return ToActionResult(registerResponse);
